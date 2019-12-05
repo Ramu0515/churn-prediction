@@ -1,5 +1,6 @@
 # churn-prediction
 Cloud computing
+This objective of this project is to "churn prediction" using logistic regression and Naive Bayes classification
 
 Execute  the spark job by below commands
 1. for Logistic regression:
