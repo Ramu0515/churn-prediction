@@ -24,7 +24,7 @@ def weights_calculation(line):
 		
 import sys
 if(len(sys.argv)!=4):
-	print("Usage: spark-submit --packages com.databricks:spark-csv_2.10:1.5.0 LogisticRegression1.py inputFile number of iterations stepfunction")
+	print("Usage: spark-submit --packages com.databricks:spark-csv_2.10:1.5.0 LogisticRegression1.py inputFile iterations stepval")
 	sys.exit(-1)
 
 
@@ -40,8 +40,6 @@ df = sqlContext.read.format("csv").option("header","true").option("inferSchema",
 
 
 df1=df.select(['rev_Mean','mou_Mean','totmrc_Mean','churn'])
-
-df.unpersist()
 
 df1.cache()
 
@@ -78,14 +76,24 @@ def predict(line):
 	z=np.asmatrix(line[:targetcolno-1])
 	k=np.asmatrix(line[targetcolno:len(line)])
 	X_matrix=np.concatenate((np.asmatrix([1.]),z,k),axis=1)
-	Y_matrix=line[targetcolno]
+	Y_matrix=line[targetcolno-1]
 	dot_product=np.dot(X_matrix,initial_weights)
 	sigmoid=1/(1+np.exp(-dot_product))
 	yield Y_matrix,sigmoid.item(0)
+
 	
 test=test.na.fill(0)	
 output=test.flatMap(lambda eachLine:predict(eachLine))	
 correct=output.filter(lambda (x, v): x == v).count()
-accuracy=np.asfloat(correct)/output.count()
-print("Accuracy on the final dataset"+str(accuracy))
+accuracy=(1.0*correct)/output.count()
+print("Accuracy on the final dataset--->"+str(accuracy))
+
+
+#clean the memory
+df.unpersist()
+df12.unpersist()
+trainingData.unpersist()
+test.unpersist()
+
+
 sc.stop()
